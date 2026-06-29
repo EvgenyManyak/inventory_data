@@ -1,0 +1,30 @@
+services:
+  db:
+    image: postgres:15
+    container_name: inventory_postgres
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: inventory_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  app:
+    build: .
+    container_name: inventory_app
+    depends_on:
+      - db
+    volumes:
+      - ./inbox:/app/inbox
+      - ./archive:/app/archive
+      - ./scripts:/app/scripts
+    environment:
+      # Добавляем $, чтобы Docker подставил пароль из .env
+      DATABASE_URL: postgresql://admin:${DB_PASSWORD}@db:5432/inventory_db
+      # Прокидываем пароль отдельно для скрипта
+      DB_PASSWORD: ${DB_PASSWORD}
+
+volumes:
+  pgdata:
